@@ -30,34 +30,7 @@ with requests.Session() as s:
 
 #add contents of urls to soup variable from each url
 soup = BeautifulSoup(r.content, 'html.parser')
-bed_list = []
-br_list = []
-sqft_list = []
-prop_list = []
-counter = 0
-for results in soup:
-    if counter < 2:
-        for ul_tag in soup.find_all("ul", class_="list-card-details"):
-            li_tag = list(ul_tag.find_all('li'))
-            #extract number of beds
-            beds = li_tag.pop(0).text
-            beds = beds[:-1]
-            bed_list.append(beds)
-            #extract number of bathrooms
-            bathrooms = li_tag.pop(0).text
-            bathrooms = bathrooms[:-1]
-            br_list.append(bathrooms)
-            #extract sqft
-            sqft = li_tag.pop(0).text
-            sqft = sqft[:-1]
-            sqft_list.append(sqft)
-            #extract property type
-            prop_type = li_tag.pop(0).text
-            prop_type = prop_type.split("- ")[1].split(" ")[0]
-            prop_list.append(prop_type)
-    counter = counter + 1
 
-#print(bed_list)
-#print(br_list)
-#print(sqft_list)
-print(prop_list)
+
+for price in soup.find_all (class_='list-card-price'):
+    print(price.text)

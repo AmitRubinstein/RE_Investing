@@ -1,8 +1,5 @@
-import os
 from bs4 import BeautifulSoup
-import numpy as np
 import pandas as pd
-import regex as re
 import requests
 import openpyxl
 
@@ -14,14 +11,14 @@ req_headers = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0) Gecko/20100101 Firefox/84.0'
 }
 
-city = 'santaclarita' #*****change this city to what you want*****
-pages = 10 #***** set to the number of pages to scrape + 1
+city = input("Enter a city: ").replace(" ", "")
+pages = int(input("Enter the number of pages to scrape: "))
 
 #create a master and page dataframe
 df = pd.DataFrame()
 df_master = pd.DataFrame()
 
-for page in range(1, pages):
+for page in range(1, pages + 1):
     with requests.Session() as s:
        url = 'https://www.zillow.com/homes/for_sale/'+city+"/"+str(page)+"_p/"
        print(url)
@@ -31,6 +28,7 @@ for page in range(1, pages):
     soup = BeautifulSoup(r.content, 'html.parser')
 
     #Create lists to store the values
+    url_list = []
     price_list = []
     address_list = []
     bed_list = []
@@ -38,15 +36,13 @@ for page in range(1, pages):
     sqft_list = []
     prop_list = []
 
-    #pull variables based on class (where possible). These lists contain html tags
-    price_list_soup = soup.find_all (class_='list-card-price')
-    address_list_soup = soup.find_all (class_= 'list-card-addr')
-
-    #Use text function to remove tags.
-    for element in price_list_soup:
-        price_list.append(element.text)
-    for element in address_list_soup:
-        address_list.append(element.text)
+    #pull variables based on class (where possible).
+    for link in soup.find_all("a", class_="list-card-link list-card-link-top-margin"):
+        url_list.append(link.get("href"))
+    for price in soup.find_all (class_='list-card-price'):
+        price_list.append(price.text)
+    for address in soup.find_all (class_= 'list-card-addr'):
+        address_list.append(address.text)
 
     #The details variables are all listed under a single class. Parse conents in 'list-card-details' class
     for ul_tag in soup.find_all("ul", class_="list-card-details"):
@@ -82,20 +78,7 @@ for page in range(1, pages):
     df['bathrooms'] = br_list
     df['square ft'] = sqft_list
     df['prop_type'] = prop_list
-
-    #create empty url list
-    urls = []
-
-    #loop through url, pull the href and strip out the address tag
-    for link in soup.find_all("article"):
-        href = link.find('a',class_="list-card-link")
-        addresses = href.find('address')
-        addresses.extract()
-        urls.append(href)#import urls into a links column
-    df['links'] = urls
-    df['links'] = df['links'].astype('str')#remove html tags
-    df['links'] = df['links'].replace('<a class="list-card-link list-card-link-top-margin" href="', ' ', regex=True)
-    df['links'] = df['links'].replace('" tabindex="0"></a>', ' ', regex=True)
+    df['links'] = url_list
 
     df_master = df_master.append(df, ignore_index = True)
 
