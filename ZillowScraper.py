@@ -27,6 +27,10 @@ def SearchResultsScrape (req_headers):
         url_list = []
         price_list = []
         address_list = []
+        street_list = []
+        city_list = []
+        state_list = []
+        zip_list = []
         bed_list = []
         br_list = []
         sqft_list = []
@@ -39,6 +43,15 @@ def SearchResultsScrape (req_headers):
             price_list.append(price.text)
         for address in soup.find_all (class_= 'list-card-addr'):
             address_list.append(address.text)
+            #Split address into individual fields
+            zip = address.text[-5:]
+            street, city, state = address.text.split(", ")
+            state = state[:2]
+            #assign address fields to lists
+            street_list.append(street)
+            city_list.append(city)
+            state_list.append(state)
+            zip_list.append(zip)
 
         #The details variables are all listed under a single class. Parse conents in 'list-card-details' class
         for ul_tag in soup.find_all("ul", class_="list-card-details"):
@@ -70,6 +83,10 @@ def SearchResultsScrape (req_headers):
         #create dataframe columns out of variables
         df["Hyperlink"] = url_list
         df["Address"] = address_list
+        df["Street"] = street_list
+        df["City"] = city_list
+        df["State"] = state_list
+        df["Zip Code"] = zip_list
         df["Price"] = price_list
         df["# Bedrooms"] = bed_list
         df["# Bathrooms"] = br_list
